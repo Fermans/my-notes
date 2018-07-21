@@ -364,7 +364,7 @@ Yes: import math
 - 对于序列(字符串、列表、元组)，空序列就是假。因此`if seq:`和`if not seq:`分别要比`if len(seq):`和`if not len(seq):`。
 - 当处理整数时，隐式的假值带来的风险可能比好处更大。比如不小心把`None`当作0处理。你可能将一个确认的整数值和这个“0”比较。
 
-```{python}
+```python
 Yes: if not users:
          print('no users')
 
@@ -379,7 +379,7 @@ Yes: if not users:
              x = []
 ```
 
-```{python}
+```python
 No:  if len(users) == 0:
          print('no users')
 
