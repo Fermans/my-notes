@@ -65,7 +65,7 @@ def viking_cafe_order(spam, beans, eggs=None):
 
 ```python
 from sound.effects import echo
-...python
+...
 echo.EchoFilter(input, output, delay=0.7, atten=4)
 ```
 
