@@ -41,7 +41,7 @@ pylint --help-msg=C6409
 优先使用`pylint:disable`，而不是弃用的旧格式`pylint:disable-msg`。
 对于未使用的参数的警告，我们可以通过在函数一开始删除这些变量来抑制。一定要注释一下为什么要删除这些变量，“Unused”就足够了，例如：
 
-```
+```python
 def viking_cafe_order(spam, beans, eggs=None):
     del beans, eggs  # Unused by vikings.
     return spam + spam + spam
@@ -63,9 +63,9 @@ def viking_cafe_order(spam, beans, eggs=None):
 - 使用`import y as z`，只有当`z`是标准缩写时，例如`numpy`缩写为`nm`
 举个例子，模块`sound.effects.echo`可以用下面的方式引用：
 
-```
+```python
 from sound.effects import echo
-...
+...python
 echo.EchoFilter(input, output, delay=0.7, atten=4)
 ```
 
@@ -80,7 +80,7 @@ echo.EchoFilter(input, output, delay=0.7, atten=4)
 #### 2.3.3 建议
 所有新代码都应该按其完整的包名导入每个模块。
 
-```
+```python
 # Reference in code with complete name.
 import absl.flags
 
@@ -101,7 +101,7 @@ from absl import flags
 - 以下面的方式抛出异常：`raise MyError('Error message')`或者`raise MyError()`，不要使用两个参数的形式`raise MyError, 'Error message'`。
 - 尽量使用内置的异常类。例如，如果在期望正数的地方传入了负数，就抛出`ValueError`异常。不要使用`assert`语句来验证公共API的参数值，`assert`用来确保内部的正确性，而不是用来强制正确使用什么，也不是用来指示意外事件的发生。如果后一种情况期望抛出异常，那就使用raise语句。例如，
 
-```
+```python
 Yes:
   def ConnectToNextPort(self, minimum):
     """Connects to the next available port.  Returns the new minimum port."""
@@ -114,7 +114,7 @@ Yes:
     return port
 ```
 
-```
+```python
 No:
   def ConnectToNextPort(self, minimum):
     """Connects to the next available port.  Returns the new minimum port."""
@@ -130,7 +130,7 @@ No:
 - 使用`finally`子句执行无论`try`块是否抛出异常都会执行的代码，这对收尾工作很有用，比如关闭文件。
 - 捕获异常时，使用`as`，不要用逗号。例如，
 
-```
+```python
 try:
   raise Error
 except Error as error:
@@ -171,7 +171,7 @@ except Error as error:
 #### 2.7.4 建议
 简单的情况下可以使用。每一部分必须适应一行的长度：mapping表达式、`for`子句、filter表达式。多层`for`子句或filter表达式是不允许的。当情况更复杂的时候使用循环。
 
-```
+```python
 Yes:
   result = []
   for x in range(10):
@@ -196,7 +196,7 @@ Yes:
       if jelly_bean.color == 'black')
 ```
 
-```
+```python
 No:
   result = [(x, y) for x in range(10) for y in range(5) if x * y > 10]
 
@@ -219,7 +219,7 @@ No:
 #### 2.8.4 建议
 如果类型支持的话，使用默认的迭代器和运算符，像列表、字典和文件等。内置的类型也定义了迭代器方法。相比返回列表的方法，优先使用这些方法，除非你在迭代的时候不允许改变容器。
 
-```
+```python
 Yes:  for key in adict: ...
       if key not in adict: ...
       if obj in alist: ...
@@ -227,7 +227,7 @@ Yes:  for key in adict: ...
       for k, v in dict.iteritems(): ...
 ```
 
-```
+```python
 No:   for key in adict.keys(): ...
       if not adict.has_key(key): ...
       for line in afile.readlines(): ...
@@ -276,7 +276,7 @@ Lambdas与声明相反，它在表达式中定义匿名函数。它通常被用�
 考虑一下建议可以使用：
 在函数或方法中不要使用可变对象作为默认值。
 
-```
+```python
 Yes: def foo(a, b=None):
          if b is None:
              b = []
@@ -285,7 +285,7 @@ Yes: def foo(a, b: Optional[Sequence] = None):
              b = []
 ```
 
-```
+```python
 No:  def foo(a, b=[]):
          ...
 No:  def foo(a, b=time.time()):  # The time the module was loaded???
@@ -304,7 +304,7 @@ No:  def foo(a, b=FLAGS.my_thing):  # sys.argv has not yet been parsed...
 #### 2.13.4 建议
 在通常你会使用简单轻量的访问或设置方法来访问或设置数据的地方换做用属性来实现。属性应当用`@property`修饰符来创建。如果属性本身没有被重写，那么带有属性的继承可能不明显。因此必须确保访问方法被间接调用来保证子类中重写的方法被属性调用。（使用模板方法DP）
 
-```
+```python
 Yes: import math
 
      class Square(object):
