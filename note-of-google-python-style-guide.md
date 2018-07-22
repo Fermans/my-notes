@@ -394,10 +394,103 @@ No:  if len(users) == 0:
 ```
 
 - 注意`'0'`(字符串0)在布尔值中是True。
+### 2.15 Deprecated Language Features(弃用的语言特性)
+尽可能使用字符串方法代替字符串模块。使用函数调用语法代替`apply`。当函数参数是内联lambda表达式时，无论如何使用列表推导式或`for`循环代替`filter`和`map`。使用`for`循环代替`reduce`。
+#### 2.15.1 定义
+python的当前版本提供了人们更愿意使用的可替代结构。
+#### 2.15.2 建议
+我们不使用不支持这些特性的python版本，没有理由不使用新方式 。
 
+```python
+Yes: words = foo.split(':')
+
+     [x[1] for x in my_list if x[2] == 5]
+
+     map(math.sqrt, data)    # Ok. No inlined lambda expression.
+
+     fn(*args, **kwargs)
+```
+
+```python
+No:  words = string.split(foo, ':')
+
+     map(lambda x: x[1], filter(lambda x: x[2] == 5, my_list))
+
+     apply(fn, args, kwargs)
+```
+
+### 2.16 Lexical Scoping(静态作用域)
+放心使用。
+#### 2.16.1 定义
+嵌套的python函数可以引用封闭函数中定义的变量，但是不能给它们赋值。变量绑定是用静态作用域解析的，也是说基于静态程序文本。代码块中任何对变量的赋值都会让python将该变量的所有引用当作局部变量，即使在赋值之前使用。如果有全局声明，那么变量就被当作全局变量。该特性使用的一个例子：
+
+```python
+def get_adder(summand1):
+    """Returns a function that adds numbers to a given number."""
+    def adder(summand2):
+        return summand1 + summand2
+
+    return adder
+```
+
+#### 2.16.2 优点
+通常会产生更加简洁优雅的代码。尤其会让有经验的Lisp和Scheme程序员感到欣慰。
+#### 2.16.3 缺点
+可能会导致令人困惑的bug。比如这个例子[PEP-0227](www.google.com/url?sa=D&q=http://www.python.org/dev/peps/pep-0227/)。
+
+```python
+i = 4
+def foo(x):
+    def bar():
+        print(i, end='')
+    # ...
+    # A bunch of code here
+    # ...
+    for i in x:  # Ah, i *is* local to foo, so this is what bar sees
+        print(i, end='')
+    bar()
+```
+因此，`foo([1, 2, 3])`会打印`1 2 3 3`而不是`1 2 3 4`。
+
+#### 2.16.4 建议
+推荐使用。
+### 2.17 Function and Method Decorators(函数和方法装饰器)
+当有明显得好处时使用。避免使用`@staticmethod`，限制`@classmethod`的使用。
+#### 2.17.1 定义
+[Decorators for Functions and Methods](https://docs.python.org/2/whatsnew/2.4.html#pep-318-decorators-for-functions-and-methods)(也成为`@`标记符)。一个常用的装饰器是`@property`，用来把普通的方法转换为动态计算的属性。而且，装饰器语言也允许用户自定义。特别地，对某个函数`my_decorator`，下面的代码：
+
+```python
+class C(object):
+    @my_decorator
+    def method(self):
+        # method body ...
+```
+
+与下面的代码是一样的：
+
+```python
+class C(object):
+    def Methodmethod(self):
+        # method body ...
+    Methodmethod = MyDecoratormy_decorator(Methodmethod)
+```
+
+#### 2.17.2 优点
+优雅地指定方法上的某些转换；这些转换可以消除重复代码，执行约束条件等。
+#### 2.17.3 缺点
+装饰器可以对函数的参数或返回值执行任意操作，可能导致令人意想不到的行为。此外，装饰器在引入的时候执行，如果装饰器代码执行失败，几乎是不可能恢复的。
+#### 2.17.4 建议
+有明显好处时明智地使用装饰器。装饰器应当遵循跟函数一样的引入和命名规则。装饰器的注释文档要明确说明该函数是一个装饰器。为装饰器编写测试代码。
+在装饰器内部避免有外部依赖(例如，不要依赖文件、socket、数据库连接等)，因为在装饰器运行(从pydoc或其他工具引入的时候)时它们可能不可用。使用有效参数调用的decorator应该(尽可能多地)保证在所有情况下都能成功。
+装饰器“顶级代码”的一种特殊情况，参考[main](#main)获取详情。
+永远不要使用`@staticmethod`(除非被迫与现有库中的API进行集成)，而是编写一个模块级函数。
+只有在编写命名构造函数或特定于类的例程(该例程修改必要的全局状态，如进程范围的缓存)时才使用@classmethod。
 
 <a id="naming"></a>
 ### 3.16 命名
 
 <a id="typing-imports"></a>
 #### 3.19.12 Imports For Typing
+
+<a id="main"></a>
+### 2.17 Main
