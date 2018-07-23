@@ -1,7 +1,7 @@
 # 谷歌python风格指南
 
 ## 前言
-
+几个工具[pylint](http://pylint.pycqa.org/en/latest/)，[yapf](https://github.com/google/yapf/)，[pytype](https://github.com/google/pytype)
 ## 1 背景
 python是谷歌使用的主要动态语言。该风格指南指出了python编程中一些该做的和不该做的行为。为了帮助读者正确地格式化代码，谷歌创建了[settings file for Vim](https://github.com/whyAtGh/styleguide/blob/gh-pages/google_python_style.vim)。对Emacs来说，默认配置没有问题。许多团队使用自动化格式工具[yapf](https://github.com/google/yapf/)来避免代码格式上的争议。
 
@@ -485,6 +485,70 @@ class C(object):
 装饰器“顶级代码”的一种特殊情况，参考[main](#main)获取详情。
 永远不要使用`@staticmethod`(除非被迫与现有库中的API进行集成)，而是编写一个模块级函数。
 只有在编写命名构造函数或特定于类的例程(该例程修改必要的全局状态，如进程范围的缓存)时才使用@classmethod。
+### 2.18 Threading(线程)
+不要依赖内置类型的原子性。
+尽管python的内置数据类型(比如字典)看上去具有原子性操作，但是在有些情况下它们并不是原子性的(例如，如果`__hash__`或者`__eq__`实现为python方法)，因此它们的原子性是靠不住的。同样，你也不应该依赖于原子性的变量赋值(因为该操作反过来依赖于字典)。
+使用Queue模块的`Queue`数据类型作为线程间数据通信的优选方式。不然就使用threading模块以及它的locking其元。学习条件变量的恰当使用，这样就可以用`threading.Condition`代替更低级别的锁。
+<a id="power-features"></a>
+### 2.19 Power Features
+避免这些特性。
+#### 2.19.1 定义
+python是一种极具灵活性的语言，提供了许多有趣的特性，比如自定义原类、访问字节码、动态编译、动态继承、对象父类重定义(object reparenting)、导入hacks、反射及系统内部构件的修改等。
+#### 2.19.2 优点
+这些都是强有力的语言特性。它们可以让你的代码更紧凑。
+#### 2.19.3 缺点
+使用这些“炫酷”的特性很有诱惑力，尽管它们不是绝对必要的。底层使用不常用特性的代码变得更难以阅读、理解和调试。一开始似乎不是这样(对代码原作者来说)，但是再次访问时，这些代码往往比那些更长但是更直接的代码更难理解。
+#### 2.19.4 建议
+在你的代码中避免出现这些特性。
+推荐使用标准库模块和内部使用这些特性的类(例如，`abc.ABCMeta`、`collections.namedtuple`和`enum`)。
+### 2.20 Modern Python: Python 3 and from \_\_future\_\_ imports {#modern-python}
+python3已经发行了。尽管不是每个项目都是用python3，但是所有的代码都应该以面向未来的眼光来写。
+#### 2.20.1 定义
+python3是python语言中一个意义重大的改变。虽然现有的代码多数是用2.7写的，但是有一些简单的事情可以做来让代码更明确地表达它的意图。这样可以更充分地准备好不做任何改变就能在python3下运行。
+#### 2.20.2 优点
+一旦项目的所有依赖都准备好了，用python3写的代码更明显、更容易在python3下执行。
+#### 2.20.3 缺点
+许多人发现额外的样板文件很难看。其他人可能说，“我不在这个文件中使用该特性”，并希望进行清理。请不要这样做。最好在所有文件中使用future imports，这样后来想使用这样的特性而编辑的时候不会忘记。
+#### 2.20.4 建议
+##### from \_\_future\_\_ imports
+推荐使用`from __future__ import`声明。所有新代码应该包含下面的语句。如果可能的话，现有代码应该更新兼容性。
+
+```python
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+```
+
+如果你还不熟悉这些，请参考：[ absolute imports](https://www.python.org/dev/peps/pep-0328/)、[new / division behavior](https://www.python.org/dev/peps/pep-0238/)和[the print function](https://www.python.org/dev/peps/pep-3105/)。
+也有其他`from __future__`声明。如果合适也可以使用。我们不建议`unicode_literals`，因为它在python2.7中很多地方引入的隐式默认编码转换序列并没有明显优势。大多数代码显式使用`b''`、`u''`字节和必要的Unicode字符串常量更好。
+当前、将来和过去的库。
+如果你的项目需要在python2和python3都支持，如果合适的话推荐使用这些库。它们是你的代码更简洁。
+### 2.21 Type Annotated Code（类型注释代码）
+你可以根据[PEP-484](https://www.python.org/dev/peps/pep-0484/)使用类型提示注释python3代码，使用类型检查工具（比如[pytype](https://github.com/google/pytype)）在编译时对代码进行类型检查。
+类型注释可以在源代码或[stub pyi file](https://www.python.org/dev/peps/pep-0484/#stub-files)中。不论什么时候，尽可能把注释放在源代码中。在第三方或扩展模块中使用pyi files。
+#### 2.21.1 定义
+类型注释（或类型提示）是针对于函数或方法参数和返回值的：
+
+```python
+def func(a: int) -> List[int]:
+```
+
+你可以用特定的注释声明变量的类型：
+
+```python
+a = SomeFunc()  # type: SomeType
+```
+
+#### 2.21.2 优点
+类型提示提高了代码的可读性和可维护性。类型检查会将很多运行时错误转换为编译时错误，并减低你是使用[Power Features](#power-features)的能力。
+#### 2.21.3 缺点
+必须保持类型声明是最新的。许多你认为有效的代码可能有类型错误。使用[类型检查](https://github.com/google/pytype)可以降低你使用[Power Features](#power-features)的能力。
+#### 2.21.4 建议
+这高度依赖于项目的复杂度，试一试。
+
+## Python Style Rules（python风格规则）
+### 3.1 Semicolons（分号）
+不要用分号作为语句的结束，也不要用分号将两个语句放在一行。
 
 <a id="naming"></a>
 ### 3.16 命名
