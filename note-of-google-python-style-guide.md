@@ -853,6 +853,30 @@ def fetch_bigtable_rows(big_table, keys, other_silly_variable=None):
     """
 ```
 
+#### 3.8.4 Classes（类）
+类定义下面应当有文档字符串来描述这个类。如果你的类里有公有属性，它们应当在属性部分进行文档化，并且跟函数的参数部分遵循一样的格式化规则。
+
+```python {.good}
+class SampleClass(object):
+    """Summary of class here.
+
+    Longer class information....
+    Longer class information....
+
+    Attributes:
+        likes_spam: A boolean indicating if we like SPAM or not.
+        eggs: An integer count of the eggs we have laid.
+    """
+
+    def __init__(self, likes_spam=False):
+        """Inits SampleClass with blah."""
+        self.likes_spam = likes_spam
+        self.eggs = 0
+
+    def public_method(self):
+        """Performs operation blah."""
+```
+
 #### 3.8.5 Block and Inline Comments（块和内联注释）
 最后一个写注释的地方是代码中棘手的部分。如果在下一步 [code
 review](http://en.wikipedia.org/wiki/Code_review) 中你必须要解释它的话，你应该现在就对它做一下注释。一些复杂的操作应该在开始之前就写几行注释。意图不容易阅读的代码，在该行后面加一行注释。
@@ -874,7 +898,7 @@ if i & (i-1) == 0:  # True if i is 0 or a power of 2.
 # the next element is i+1
 ```
 
-### 3.8.6 Punctuation, Spelling and Grammar（标点、拼写和语法）
+#### 3.8.6 Punctuation, Spelling and Grammar（标点、拼写和语法）
 注意一下标点、拼写和语法，写得好的注释比那些糟糕的更容易阅读。
 注释应该跟叙事性文本一样具有可读性，有合适的大小写以及标点。许多情况下，一个完整的句子要比一个句子片段可读性更好。更短的注释，比如一行代码后面的注释，有时不那么正式，但是你应该保持你的代码风格一致。
 尽管让一个代码审查员指出本应该用分号的时候用了逗号让你感到有点沮丧，但是保持源代码高度的清晰性和可读性非常重要。恰当的标点、拼写和语法大有裨益。
