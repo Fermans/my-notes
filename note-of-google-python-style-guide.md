@@ -2,12 +2,11 @@
 
 ## 前言
 对于python的语法，我还有很多地方不是特别清楚，所以有些地方翻译得不是特别清晰，可能会看得有点头大。对这些地方请参考官方说明。  
-
 这篇风格指南针对于python，给出了一些建议。涉及了两个方面，一个是有关python语法的规范，比如异常怎么用、什么时候用列表生成器等等，这部分是关于python语言本身的使用指南；另一个是关于python代码的风格，比如如何进行缩进、如何续行等等，这部分让代码看上去很紧凑。这两个方面对于代码的可读性、代码以后的可维护性都有很积极的意义，对于Code Review大有帮助。  
-
 这篇风格指南只是给出了google的一些规范和建议，有许多地方并不是强制要求这么做。但正如上所说，为了代码更加紧凑、美观，增强代码可读性和可维护性。我们应当遵守这样的指导。  
-
 文档中提到了几个工具[pylint](http://pylint.pycqa.org/en/latest/)、[yapf](https://github.com/google/yapf/)、[pytype](https://github.com/google/pytype)，可以查阅一下使用方式，可以让代码尽可能的满足本文提到的各种规范建议。
+
+下面开始正文。
 ## 1 背景
 python是谷歌使用的主要动态语言。该风格指南指出了python编程中一些该做的和不该做的行为。为了帮助读者正确地格式化代码，谷歌创建了[settings file for Vim](https://github.com/whyAtGh/styleguide/blob/gh-pages/google_python_style.vim)。对Emacs来说，默认配置没有问题。许多团队使用自动化格式工具[yapf](https://github.com/google/yapf/)来避免代码格式上的争议。
 
@@ -1508,7 +1507,7 @@ def my_method(self, var: some_mod.SomeType) -> None:
   ...
 ```
 
-## 4 Parting Words（临别赠言）
+## 4 Parting Words（写在最后的话）
 *保持一致*。
 
 如果你在编辑代码，那么花几分钟看一下你的代码，然后确定它的风格。如果算数运算符两旁都有空格，你应该保持这样。如果代码注释周围有哈希标记，你写的代码也应该要有。
