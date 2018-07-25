@@ -4,5 +4,6 @@
 <li>Config Vundle for your vim.
 <li>Rename this file to ".vimrc" and put it under home dir of your linux.
 </ol>
-# note-of-google-python-style-guide.md
+
+# note-of-google-python-style-guide.md  
 The translation of google python style guide.
