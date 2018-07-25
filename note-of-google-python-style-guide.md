@@ -1,7 +1,13 @@
 # 谷歌python风格指南
 
 ## 前言
-几个工具[pylint](http://pylint.pycqa.org/en/latest/)，[yapf](https://github.com/google/yapf/)，[pytype](https://github.com/google/pytype)
+对于python的语法，我还有很多地方不是特别清楚，所以有些地方翻译得不是特别清晰，可能会看得有点头大。对这些地方请参考官方说明。  
+
+这篇风格指南针对于python，给出了一些建议。涉及了两个方面，一个是有关python语法的规范，比如异常怎么用、什么时候用列表生成器等等，这部分是关于python语言本身的使用指南；另一个是关于python代码的风格，比如如何进行缩进、如何续行等等，这部分让代码看上去很紧凑。这两个方面对于代码的可读性、代码以后的可维护性都有很积极的意义，对于Code Review大有帮助。  
+
+这篇风格指南只是给出了google的一些规范和建议，有许多地方并不是强制要求这么做。但正如上所说，为了代码更加紧凑、美观，增强代码可读性和可维护性。我们应当遵守这样的指导。  
+
+文档中提到了几个工具[pylint](http://pylint.pycqa.org/en/latest/)、[yapf](https://github.com/google/yapf/)、[pytype](https://github.com/google/pytype)，可以查阅一下使用方式，可以让代码尽可能的满足本文提到的各种规范建议。
 ## 1 背景
 python是谷歌使用的主要动态语言。该风格指南指出了python编程中一些该做的和不该做的行为。为了帮助读者正确地格式化代码，谷歌创建了[settings file for Vim](https://github.com/whyAtGh/styleguide/blob/gh-pages/google_python_style.vim)。对Emacs来说，默认配置没有问题。许多团队使用自动化格式工具[yapf](https://github.com/google/yapf/)来避免代码格式上的争议。
 
@@ -1396,7 +1402,7 @@ a = [1, 2, 3]  # type: List[int]
 b = (1, 2, 3)  # type: Tuple[int, ...]
 c = (1, "2", 3.5)  # type Tuple[int, str, float]
 ```
-
+<a id=="typing-type-var"></a>
 #### 3.19.10 TypeVar
 python系统类型也有[泛型](https://www.python.org/dev/peps/pep-0484/#generics)。工厂函数`TypeVar`是使用泛型的通用方法。例如：
 
@@ -1432,9 +1438,81 @@ def f(x: str) -> str:
   ...
 ```
 
+处理byte数组的代码，就用`bytes`：
+
+```python {.good}
+def f(x: bytes) -> bytes:
+  ...
+```
+
+处理Unicode数组的代码就用`Text`：
+
+```python {.good}
+from typing import Text
+...
+def f(x: Text) -> Text:
+  ...
+```
+如果数组既可以是byte又可以是Unicode就用`Union`：
 
 
+```python {.good}
+from typing import Text, Union
+...
+def f(x: Union[bytes, Text]) -> Union[bytes, Text]:
+  ...
+```
+如果函数的字符串类型总是相同的，例如上面代码的参数类型和返回类型一样，这时使用[AnyStr](#typing-type-var)。
+
+这样编写代码将简化代码移植到python3的过程。
 <a id="typing-imports"></a>
-#### 3.19.12 Imports For Typing
+#### 3.19.12 Imports For Typing（类型导入）
+`typing`模块中的类，总是导入类本身。这时允许你在一行代码中从`typing`模块中导入多个类。例如：
+
+```python {.good}
+from typing import Any, Dict, Optional
+```
+考虑到以这种方式从`typing`模块中导入类会在本地名称空间中添加其中的项目。所以`typing`中出现的名字都简单地当作关键字处理。因此就不要在你的python代码中再次定义，无论使用与否。如果类型和模块中已有的名字产生冲突，那么用`import x as y`方式导入。
+
+
+```python {.good}
+from typing import Any as AnyType
+```
+如果需要在运行时避免类型检查所需的附加导入，则可使用条件导入。不推荐这种模式，可以选择重构代码以允许顶层导入等替代方法。如果终究还是使用了这种模式，那么条件导致的类型需要使用字符串`'sketch.Sketch'`而不是`sketch.Sketch`。这是为了与注释表达式实际求值的python3前向兼容。仅仅类型注释才会需要的导入放在`if typing.TYPE_CHECKING:`块中。
+- 只定义跟typing相关的实体，包括别名。否则会出现运行时错误，因为运行时模块不会被导入。
+- 这部分代码块应刚好放在普通导入之后
+- 在typing的导入列表中不应有空行
+- 像普通列表一样给这个列表排序，但是把有关typing模块的导入放在最后。
+- `google3`模块也有一个`TYPE_CHECKING`常量。如果你不想在运行时导入`typing`，可以用它来作为替代。
+
+```python {.good}
+import typing
+...
+if typing.TYPE_CHECKING:
+  import types
+  from MySQLdb import connections
+  from google3.path.to.my.project import my_proto_pb2
+  from typing import Any, Dict, Optional
+```
+#### 3.19.13 Circular Dependencies（循环依赖）
+由typing引起的循环依赖属于代码异味。这样的代码最好拿来重构。尽管技术上可以做到循环依赖，但是编译系统不允许这么做，因为每个模块都必须依赖于另一个。
+用`Any`替换引发循环依赖的导入。给[alias](#typing-aliases)一个有意义的名字，并使用模块中真实的类型名称（Any中的任何属性都是Any）。别名定义与最后一行导入隔开一行。
+
+```python {.good}
+from typing import Any
+
+some_mod = Any  # some_mod.py imports this module.
+...
+
+def my_method(self, var: some_mod.SomeType) -> None:
+  ...
+```
+
+## 4 Parting Words（临别赠言）
+*保持一致*。
+
+如果你在编辑代码，那么花几分钟看一下你的代码，然后确定它的风格。如果算数运算符两旁都有空格，你应该保持这样。如果代码注释周围有哈希标记，你写的代码也应该要有。
+
+风格指南的意义是提供一个编码词汇表，因此人们会更关注于要说什么而不是要怎么说上面。我们在这里给出总体的风格指南，让人们了解这个词汇表；但是自己的风格也很重要。如果你在一个文件中添加的代码与文件中原有的代码风格相差太大，那么读者读代码的时候就会云里雾里，避免这样。
 
 
