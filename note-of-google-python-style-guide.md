@@ -1237,8 +1237,203 @@ if __name__ == '__main__':
 我们承认长函数有时是很合适的，所以对于函数长度没有强硬的限制。如果一个函数超过了40行，考虑一下在不改变程序结构前提下，函数能不能分解。
 即使你的长函数现在依然完美运行，几个月后可能有人需要改变它来添加新功能。这可能导致难以发现的bug。保持函数简短可以让其他人更容易理解并改变你的代码。
 当你处理某些代码时，你可能会发现又长又复杂的函数。不要被改变现有代码吓住：如果处理这样的函数很艰难，或发现错误很难调试，再或者你想在几个不同的环境中复用其代码段，那么考虑分解成更轻量的函数以及更容易维护的代码段。
+### 3.19 Type Annotations（类型注释）
+#### 3.19.1 一般规则
+
+* 熟悉[PEP-484](https://www.python.org/dev/peps/pep-0484/)
+* 方法中不要注释`self`或者`cls`
+* 如果任何其他变量或返回类型不应该被表达，使用`Any`
+* 没有必要对模块中的所有函数进行注释
+  - 至少注释公共接口（API）
+  - 做好判断，在安全性清晰性和灵活性之间做好权衡
+  - 注释容易出现类型错误的代码（先前的错误或复杂度）
+  - 注释较难理解的代码
+  - 从类型的角度看，当代码稳定的时候注释代码。在许多情况下，你可以注释成熟代码的所有函数，也不会丧失太多灵活性
+  
+#### 3.19.2 换行
+遵循现有的[indentation](#3.4-indentation)规则。总是优先在变量之间换行。
+注释之后，很多函数变成“一个参数占一行”。
+
+```python
+def my_method(self,
+              first_var: int,
+              second_var: Foo,
+              third_var: Optional[Bar]) -> int:
+```
+
+然而，如果所有代码适合一行，那就一行。
+
+```python
+def my_method(self, first_var: int) -> int:
+```
+
+如果函数名、最后一个参数和返回类型放在一行太长，那就在新的一行缩进4个空格。
+
+```python
+def my_method(
+    self, first_var: int) -> Tuple[MyLongType1, MyLongType1]:
+```
+
+如果返回类型跟最后一个参数放在一行不合适，更好的方式是在新的一行将所有参数缩进4个空格，并将右括号跟def对齐。
+
+```python
+Yes:
+def my_method(
+    self, **kw_args: Optional[MyLongType]
+) -> Dict[OtherLongType, MyLongType]:
+  ...
+```
+
+`pylint`允许将右括号放在新行并和左括号对齐，但是这样可读性比较差。
+
+```python
+No:
+def my_method(self,
+              **kw_args: Optional[MyLongType]
+             ) -> Dict[OtherLongType, MyLongType]:
+  ...
+```
+
+如果单个名称或类型很长，考虑对类型使用[alias](#typing-aliases)。最后的手段是在冒号后面断行，并缩进4个字符。
+
+```python
+Yes:
+def my_function(
+    long_variable_name:
+        long_module_name.LongTypeName,
+) -> None:
+  ...
+```
+
+```python
+No:
+def my_function(
+    long_variable_name: long_module_name.
+        LongTypeName,
+) -> None:
+  ...
+```
+
+#### 3.19.3 前向声明
+如果你需要在当前相同模块中使用一个类名，而这个类还没有进行定义。例如，如果你想在类定义中使用这个类，抑或你想使用一个在下方定义的类，那么使用类名的字符串形式。
+
+```python
+class MyClass(object):
+
+  def __init__(self,
+               stack: List["MyClass"]) -> None:
+```
+
 <a id="typing-default-values"></a>
-#### 3.19.4
+#### 3.19.4 默认值
+依据[PEP-008](https://www.python.org/dev/peps/pep-0008/#other-recommendations)，当结合使用参数注释和默认值时，'='两边都要添加空格（但仅对同时使用注释和默认值的参数适用）。
+
+```python
+Yes:
+def func(a: int = 0) -> int:
+  ...
+```
+
+```python
+No:
+def func(a:int=0) -> int:
+  ...
+```
+
+#### 3.19.5 NoneType
+在python类型系统中，NoneType是“第一类”类型，处于方便输入的目的，`None`是`Nonetype`的别名。如果一个参数可以是`None`，那么必须要显示声明。你可以使用`Union`，但如果只有一个其他类型，`Optional`更方便。
+
+```python
+Yes:
+def func(a: Optional[str]) -> str:
+  ...
+```
+
+```python
+No:
+def func(a: Union[None, str]) -> str:
+  ...
+```
+
+如果一个参数的默认值是`None`，那么`Optional`变量是可选的。
+
+```python
+Yes:
+def func(a: Optional[str] = None) -> str:
+  ...
+def func(a: str = None) -> str:
+  ...
+```
+
+<a id="typing-aliases"></a>
+#### 3.19.6 Type Aliases(类型别名)
+你可以为复杂的类型声明别名。别名的名称应当使用驼峰命名。描述该组合类型并以`Type`结尾（对于元组使用`Types`）。如果别名只在本模块中使用，那么应该私有化（使用`_`）。
+例如，如果模块与类型的名字连起来很长时：
+```python {.good}
+SomeType = module_with_long_name.TypeWithLongName
+```
+
+其他例子是复杂嵌套类型和函数的多个返回变量（比如元组）。
+#### 3.19.7 忽略类型
+你可以用特殊的注释`# type: ignore`来禁用某一行的类型检查。`pytype` 对特定的错误有禁用的功能（类似lint）。
+
+```python {.good}
+# pytype: disable=attribute-error
+```
+
+#### 3.19.8 内部变量的类型
+如果内部变量的类型很难或不可能推断出来，那么你可以提供一行特殊的注释：
+
+```python {.good}
+a = SomeUndecoratedFunction()  # type: Foo
+```
+
+#### 3.19.9 元组 vs 列表
+与列表只有一种类型不同，元组既可以有一种单一的类型，也可以有一组不同类型的元素。后者通常用在函数中的返回类型。
+
+```python {.good}
+a = [1, 2, 3]  # type: List[int]
+b = (1, 2, 3)  # type: Tuple[int, ...]
+c = (1, "2", 3.5)  # type Tuple[int, str, float]
+```
+
+#### 3.19.10 TypeVar
+python系统类型也有[泛型](https://www.python.org/dev/peps/pep-0484/#generics)。工厂函数`TypeVar`是使用泛型的通用方法。例如：
+
+```python {.good}
+from typing import List, TypeVar
+T = TypeVar("T")
+...
+def next(l: List[T]) -> T:
+  return l.pop()
+```
+
+TypeVar可以添加约束条件：
+
+```python {.good}
+AddableType = TypeVar("AddableType", int, float, str)
+def add(a: AddableType, b: AddableType) -> AddableType:
+  return a + b
+```
+
+在`typing`模块中常见的预定义类型变量是`AnyStr`，它主要用于可以是`bytes`或`unicode`的参数。
+
+```python {.good}
+AnyStr = TypeVar("AnyStr", bytes, unicode)
+```
+
+#### 3.19.11 字符串类型
+当注释接收字符串参数或返回字符串的函数时，避免使用`str`，因为在python2和python3中它是不一样的。在Python 2中， `str`
+是`bytes`；在Python 3中，它是`unicode`。所以尽可能显式使用。
+
+```python {.bad}
+No:
+def f(x: str) -> str:
+  ...
+```
+
+
+
 <a id="typing-imports"></a>
 #### 3.19.12 Imports For Typing
 
