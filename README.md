@@ -5,5 +5,8 @@
 <li>Rename this file to ".vimrc" and put it under home dir of your linux.
 </ol>
 
-# note-of-google-python-style-guide.md  
+# note-of-google-python-style-guide
 The translation of google python style guide.
+
+# Apollo_notes
+Some points worth to note in baidu apollo projects.
