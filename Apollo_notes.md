@@ -1,6 +1,7 @@
 ## 1 编译ESD CAN驱动源代码 
-参考资料点[这里](https://github.com/ApolloAuto/apollo-kernel/blob/master/linux/ESDCAN-README.md)
-预编译的Apollo内核镜像不包含CAN卡驱动，安装预编译好的内核后可以按照下面的方式进行CAN卡驱动的编译。
+参考资料点[这里](https://github.com/ApolloAuto/apollo-kernel/blob/master/linux/ESDCAN-README.md)。
+
+预编译的Apollo内核镜像不包含CAN卡驱动，安装预编译好的内核后可以按照下面的方式进行CAN卡驱动的编译：
 1. 准备ESD CAN驱动的Linux代码包
 2. 解压代码包，进入代码包的目录，进行以下操作：
 
@@ -8,7 +9,7 @@
 cd src/; make -C /lib/modules/`uname -r`/build M=`pwd`
 sudo make -C /lib/modules/`uname -r`/build M=`pwd` modules_install
 ```
-3. esdcan-pcie402.ko就是新编译好的CAN卡驱动，安装在`/lib/modules/uname -r/extra/`目录下
+3. esdcan-pcie402.ko就是新编译好的CAN卡驱动，安装在`/lib/modules/$(uname -r)/extra/`目录下
 4. 重启IPC
 5. 通过以下命令创建CAN设备节点
 
