@@ -64,3 +64,22 @@ Test 100:  Object Scheduling test
 Test  -2:  Overview without syntax help
 Test  -3:  Overview without syntax help but with feature flags details
 ```
+## 2 运行Apollo1.0.0离线Demo
+参考步骤点[这里](https://github.com/ApolloAuto/apollo/tree/r1.0.0/docs/demo_guide)
+
+通过以下步骤运行离线Demo：
+1. 通过以下命令开启docker环境
+
+```bash docker/scripts/release_start.sh```
+
+如果提示docker未启动，则手动启动docker
+2. 通过以下命令进入docker环境
+
+```bash docker/scripts/release_into.sh```
+
+3. 通过以下命令运行`rosbag`回放
+
+```rosbag play docs/demo_guide/demo.bag --loop```
+
+4. 打开浏览器，输入网址localhost:8887
+剩下的步骤参考上面的网址提到的步骤。
